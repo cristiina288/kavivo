@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "919550817361",
+    "project_id": "kavivo",
+    "storage_bucket": "kavivo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919550817361:android:e9229ff3fa5d80769ef470",
+        "android_client_info": {
+          "package_name": "org.vi.be.kavivo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlJX7PEp-2rbAu00X4DptHny7H12CwKWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
