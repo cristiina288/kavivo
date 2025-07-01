@@ -39,7 +39,8 @@ foundationLayoutAndroid = "1.8.3"
 foundationAndroid = "1.8.3"
 uiAndroid = "1.8.3"
 material3AndroidVersion = "1.3.2"
-voyagerNavigator = "1.0.0"
+voyagerCore = "1.0.1"
+voyagerNavigator = "1.0.1"
 
 
 [libraries]
@@ -85,8 +86,10 @@ androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", vers
 #noinspection SimilarGradleDependency
 material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3AndroidVersion" }
 voyager-bottom-sheet-navigator = { module = "cafe.adriel.voyager:voyager-bottom-sheet-navigator", version.ref = "voyagerNavigator" }
+voyager-core = { module = "cafe.adriel.voyager:voyager-core", version.ref = "voyagerCore" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerNavigator" }
 voyager-tab-navigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyagerNavigator" }
+voyager-compose = { module = "cafe.adriel.voyager:voyager-compose", version.ref = "voyagerNavigator" }
 
 
 [plugins]

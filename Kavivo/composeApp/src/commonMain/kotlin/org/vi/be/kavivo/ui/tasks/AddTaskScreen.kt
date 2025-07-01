@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -49,18 +50,12 @@ import org.vi.be.kavivo.domain.tasks.models.TaskModel
 import org.vi.be.kavivo.ui.helpers.formatDate
 
 
-object AddTaskScreen : Screen {
-    @Composable
-    override fun Content() {
-        AddTaskContent()
-    }
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddTaskContent() {
-    val navigator = LocalNavigator.currentOrThrow
+fun AddTaskScreen(
+    navController: NavController
+) {
+    //val navigator = LocalNavigator.currentOrThrow
     val tasksViewModel = koinViewModel<TaskViewModel>()
 
     var titulo by remember { mutableStateOf("") }
@@ -75,7 +70,7 @@ private fun AddTaskContent() {
     val status by tasksViewModel.addTaskStatus.collectAsState()
 
     if (status) {
-        navigator.pop()
+        navController.popBackStack()
     }
 
     Scaffold(
@@ -89,7 +84,9 @@ private fun AddTaskContent() {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() } ) {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    } ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Volver"

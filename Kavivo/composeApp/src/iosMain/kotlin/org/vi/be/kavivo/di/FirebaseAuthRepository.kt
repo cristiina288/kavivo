@@ -16,7 +16,7 @@ class FirebaseAuthRepository : AuthRepository {
     }
 
 
-    override suspend fun register(user: UserModel): Boolean {
+    override suspend fun register(user: UserModel): Result<UserModel> {
         TODO("Not yet implemented")
 
     }
@@ -31,7 +31,7 @@ class FirebaseAuthRepository : AuthRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getUserById(user: UserModel): UserModel? {
+    override suspend fun getUserById(userId: String): UserModel? {
         TODO("Not yet implemented")
     }
 }

@@ -2,6 +2,8 @@ package org.vi.be.kavivo.di
 
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
+import org.vi.be.kavivo.domain.comments.AddComment
+import org.vi.be.kavivo.domain.comments.GetComments
 import org.vi.be.kavivo.domain.tasks.AddTask
 import org.vi.be.kavivo.domain.tasks.GetTasks
 import org.vi.be.kavivo.domain.tasks.UpdateTask
@@ -16,4 +18,7 @@ val domainModule = module {
 
     factoryOf(::RegisterUser)
     factoryOf(::LoginUser)
+
+    factoryOf(::GetComments)
+    factoryOf(::AddComment)
 }

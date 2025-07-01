@@ -11,8 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
@@ -25,22 +28,18 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.vi.be.kavivo.domain.tasks.models.DateInfo
 import org.vi.be.kavivo.domain.tasks.models.TaskModel
+import org.vi.be.kavivo.ui.Routes
 import org.vi.be.kavivo.ui.helpers.formatDateTitle
-
-object TaskScreen : Screen {
-    @Composable
-    override fun Content() {
-        TasksScreen()
-    }
-}
+import org.vi.be.kavivo.ui.login.LoginScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
 @Composable
-fun TasksScreen(
-    onTaskClick: (TaskModel) -> Unit = {}
+fun TasksScreen (
+    navController: NavHostController
+    //onTaskClick: (TaskModel) -> Unit = {}
 ) {
-    val navigator = LocalNavigator.currentOrThrow
+    //val navigator = LocalNavigator.currentOrThrow
     val tasksViewModel = koinViewModel<TaskViewModel>()
 
     val tasks by tasksViewModel.tasks.collectAsState(initial = emptyList())
@@ -59,7 +58,7 @@ fun TasksScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navigator.push(AddTaskScreen)
+                    navController.navigate(Routes.ADD_TASKS)
                 }
             ) {
                 Icon(
@@ -103,7 +102,9 @@ fun TasksScreen(
                     ) { index, task ->
                         TaskItem(
                             task = task,
-                            onClick = { onTaskClick(task) },
+                            onClick = {
+                                //onTaskClick(task)
+                                      },
                             tasksViewModel
                         )
 

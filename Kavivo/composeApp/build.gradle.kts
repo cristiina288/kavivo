@@ -55,7 +55,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             //implementation(libs.kotlinx.coroutines.core)
-
+            implementation(libs.voyager.core)
 
             //koin
             implementation(libs.koin.compose)
@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.bottom.sheet.navigator)
             implementation(libs.voyager.tab.navigator)
+            implementation("androidx.navigation:navigation-compose:2.7.6")
 
             //fechas
             implementation(libs.kotlinx.datetime)
