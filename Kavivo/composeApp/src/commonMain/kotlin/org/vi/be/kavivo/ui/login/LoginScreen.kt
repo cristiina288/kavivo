@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -21,13 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.koin.compose.viewmodel.koinViewModel
+import org.vi.be.kavivo.domain.users.models.UserModel
 import org.vi.be.kavivo.ui.tasks.TaskScreen
-import org.vi.be.kavivo.ui.tasks.TaskViewModel
 
-//import androidx.compose.material.icons.filled.Visibility
-//import androidx.compose.material.icons.filled.VisibilityOff
 
 object LoginScreen : Screen {
     @Composable
@@ -49,6 +49,12 @@ fun LoginContent(
     val navigator = LocalNavigator.currentOrThrow
     val loginViewModel = koinViewModel<LoginViewModel>()
 
+    val status by loginViewModel.userStatus.collectAsState()
+
+    if (status) {
+        navigator.push(TaskScreen)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +65,7 @@ fun LoginContent(
 
         // Título de la app
         Text(
-            text = "Task Manager",
+            text = "KAVIVO",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
@@ -99,15 +105,14 @@ fun LoginContent(
 
         // Content based on selected tab
         when (selectedTabIndex) {
-            0 -> LoginContent(onLoginSuccess = { navigator.push(TaskScreen) }, loginViewModel)
-            1 -> RegisterContent(onRegisterSuccess =  { navigator.push(TaskScreen) }, loginViewModel)
+            0 -> LoginComponentContent(loginViewModel)
+            1 -> RegisterContent(loginViewModel)
         }
     }
 }
 
 @Composable
-private fun LoginContent(
-    onLoginSuccess: () -> Unit,
+private fun LoginComponentContent(
     loginViewModel: LoginViewModel
 ) {
     var email by remember { mutableStateOf("") }
@@ -190,6 +195,12 @@ private fun LoginContent(
             onClick = {
                 if (email.isNotBlank() && password.isNotBlank()) {
                     isLoading = true
+
+
+                    loginViewModel.loginUser(
+                        userEmail = email,
+                        userPassword = password,
+                    )
                     // Aquí iría la lógica de login con Firebase
                     // Por ahora simulamos el login
                     /*loginViewModel.performLogin(email, password) { success, error ->
@@ -231,18 +242,17 @@ private fun LoginContent(
         }
 
         // Forgot Password
-        TextButton(
-            onClick = { /* Implementar recuperar contraseña */ },
+        /*TextButton(
+            onClick = { *//* Implementar recuperar contraseña *//* },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("¿Olvidaste tu contraseña?")
-        }
+        }*/
     }
 }
 
 @Composable
 private fun RegisterContent(
-    onRegisterSuccess: () -> Unit,
     loginViewModel: LoginViewModel
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -267,8 +277,8 @@ private fun RegisterContent(
                 nombre = it
                 errorMessage = null
             },
-            label = { Text("Nombre completo") },
-            placeholder = { Text("Tu nombre completo") },
+            label = { Text("Nombre") },
+            placeholder = { Text("Tu nombre") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -349,7 +359,7 @@ private fun RegisterContent(
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                     Icon(
-                        imageVector = if (confirmPasswordVisible) Icons.Default.Lock else Icons.Default.Lock,
+                        imageVector = if (confirmPasswordVisible) Icons.Default.Close else Icons.Default.Lock,
                         contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                     )
                 }
@@ -405,6 +415,18 @@ private fun RegisterContent(
                     }
                     else -> {
                         isLoading = true
+
+
+                        loginViewModel.registerUser(
+                            UserModel (
+                                //Id = "",
+                                email = email,
+                                name = nombre,
+                                password = password,
+                            )
+                        )
+
+
                         // Aquí iría la lógica de registro con Firebase
                         /*performRegister(nombre, email, password) { success, error ->
                             isLoading = false

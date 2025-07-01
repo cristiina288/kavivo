@@ -13,7 +13,7 @@ class FirebaseTaskRepository : TaskRepository {
         return emptyList()
     }
 
-    override suspend fun addTask(task: TaskModel) {
+    override suspend fun addTask(task: TaskModel): Boolean {
        // tasksCollection.add(task).await()
     }
 

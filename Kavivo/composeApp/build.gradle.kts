@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 kotlin {
@@ -40,6 +41,8 @@ kotlin {
             implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.firebase.analytics)
             implementation(libs.firebase.firestore)
+            implementation(libs.firebase.auth.ktx) // versión actual a julio 2025
+
         }
 
         commonMain.dependencies {
@@ -71,6 +74,17 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.bottom.sheet.navigator)
             implementation(libs.voyager.tab.navigator)
+
+            //fechas
+            implementation(libs.kotlinx.datetime)
+
+            //encryptado contraseñas
+            implementation(libs.bcrypt)
+
+            //para gaurdar info en sharedPreferences
+            implementation(libs.multiplatform.settings)
+            implementation(libs.kotlinx.serialization.json)
+
         }
         commonTest.dependencies {
             implementation(libs.ktor.client.darwin)

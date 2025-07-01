@@ -18,15 +18,26 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import kavivo.composeapp.generated.resources.Res
 import kavivo.composeapp.generated.resources.compose_multiplatform
+import org.koin.compose.viewmodel.koinViewModel
 import org.vi.be.kavivo.Greeting
+import org.vi.be.kavivo.domain.users.UsersRepository
 import org.vi.be.kavivo.ui.login.LoginScreen
 import org.vi.be.kavivo.ui.tasks.TaskScreen
+import org.vi.be.kavivo.ui.tasks.TaskViewModel
 import org.vi.be.kavivo.ui.tasks.TasksScreen
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        Navigator(screen = LoginScreen)
+        val appViewModel = koinViewModel<AppViewModel>()
+
+        val user by appViewModel.user.collectAsState()
+
+        if (user != null) {
+            Navigator(screen = TaskScreen)
+        } else {
+            Navigator(screen = LoginScreen)
+        }
     }
 }

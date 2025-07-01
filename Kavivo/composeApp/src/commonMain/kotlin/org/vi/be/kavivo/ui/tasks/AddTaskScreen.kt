@@ -1,13 +1,40 @@
 package org.vi.be.kavivo.ui.tasks
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,8 +43,10 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.datetime.Clock.System
 import org.koin.compose.viewmodel.koinViewModel
 import org.vi.be.kavivo.domain.tasks.models.TaskModel
+import org.vi.be.kavivo.ui.helpers.formatDate
 
 
 object AddTaskScreen : Screen {
@@ -38,6 +67,8 @@ private fun AddTaskContent() {
     var descripcion by remember { mutableStateOf("") }
     var fechaLimite by remember { mutableStateOf("") }
     var usuarioAsignado by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf<Long?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     var isLoading by remember { mutableStateOf(false) }
 
@@ -74,7 +105,7 @@ private fun AddTaskContent() {
                                     title = titulo,
                                     description = descripcion,
                                     isDone = false,
-                                    dueDate = 0L,
+                                    dueDate = selectedDate,
                                     createdAt = 0,
                                     updatedAt = null,
                                     assignedUserId = usuarioAsignado
@@ -116,15 +147,15 @@ private fun AddTaskContent() {
                 placeholder = { Text("Ingresa el título de la tarea") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = titulo.isBlank(),
+               /* isError = errorTitle,
                 supportingText = {
-                    if (titulo.isBlank()) {
+                    if (errorTitle) {
                         Text(
                             text = "El título es obligatorio",
                             color = MaterialTheme.colorScheme.error
                         )
                     }
-                }
+                }*/
             )
 
             // Campo Descripción
@@ -138,15 +169,87 @@ private fun AddTaskContent() {
                 maxLines = 5
             )
 
-            // Campo Fecha Límite
-            OutlinedTextField(
-                value = fechaLimite,
-                onValueChange = { fechaLimite = it },
-                label = { Text("Fecha Límite") },
-                placeholder = { Text("DD/MM/AAAA") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Selecciona la fecha límite",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+            // Botón para mostrar el selector
+            Button(
+                onClick = { showDatePicker = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = if (selectedDate != null) {
+                        "Cambiar fecha"
+                    } else {
+                        "Seleccionar fecha"
+                    }
+                )
+            }
+
+                // Mostrar la fecha seleccionada
+                if (selectedDate != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Fecha seleccionada:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = formatDate(selectedDate!!),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Botón para limpiar la selección
+                if (selectedDate != null) {
+                    OutlinedButton(
+                        onClick = { selectedDate = null },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text("Limpiar selección")
+                    }
+                }
+            }
+
+            // Mostrar el DatePickerDialog cuando sea necesario
+            if (showDatePicker) {
+                DatePickerPersonalized(
+                    onDateSelected = { dateMillis ->
+                        selectedDate = dateMillis
+                    },
+                    onDismiss = {
+                        showDatePicker = false
+                    },
+                    initialDate = selectedDate ?: System.now().toEpochMilliseconds()
+                )
+            }
 
             // Campo Usuario Asignado
             OutlinedTextField(
@@ -170,8 +273,8 @@ private fun AddTaskContent() {
                             title = titulo,
                             description = descripcion,
                             isDone = false,
-                            dueDate = 0L,
-                            createdAt = 0,
+                            dueDate = selectedDate,
+                            createdAt = System.now().toEpochMilliseconds(),
                             updatedAt = null,
                             assignedUserId = usuarioAsignado
                         )
@@ -207,24 +310,3 @@ private fun AddTaskContent() {
         }
     }
 }
-
-/*
-// En tu Composable principal donde llamas a AddTaskScreen:
-AddTaskScreen(
-    onNavigateBack = { navController.popBackStack() },
-    onSaveTask = { titulo, descripcion, fechaLimite, usuarioAsignado ->
-        val newTask = Task(
-            titulo = titulo,
-            descripcion = descripcion,
-            fechaLimite = fechaLimite,
-            usuarioAsignado = usuarioAsignado
-        )
-
-        viewModel.saveTask(newTask) { success ->
-            if (success) {
-                navController.popBackStack()
-            }
-        }
-    }
-)
-*/
