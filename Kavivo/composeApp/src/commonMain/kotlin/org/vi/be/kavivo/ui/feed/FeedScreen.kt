@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,23 +48,17 @@ fun FeedScreen (
 
     val comments by feedViewModel.comments.collectAsState(initial = emptyList())
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Muro", textAlign = TextAlign.Center) },
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate(Routes.ADD_COMMENTS)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar comentario"
-                        )
-                    }
-                }
-            )
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val shouldReload = savedStateHandle?.get<Boolean>("shouldReloadComments") == true
+
+    LaunchedEffect(shouldReload) {
+        if (shouldReload) {
+            feedViewModel.getAllComments() // o la función que tengas
+            savedStateHandle?.remove<Boolean>("shouldReloadComments")
         }
-    ) { paddingValues ->
+    }
+
+    Scaffold { paddingValues ->
         if (comments?.isEmpty() == true) {
             Box(
                 modifier = Modifier

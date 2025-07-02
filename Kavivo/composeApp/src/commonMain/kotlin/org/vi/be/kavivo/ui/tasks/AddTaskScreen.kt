@@ -68,8 +68,13 @@ fun AddTaskScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     val status by tasksViewModel.addTaskStatus.collectAsState()
+    val groupId by tasksViewModel.groupSelectedId.collectAsState()
 
     if (status) {
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.set("shouldReloadTasks", true)
+
         navController.popBackStack()
     }
 
@@ -105,10 +110,12 @@ fun AddTaskScreen(
                                     dueDate = selectedDate,
                                     createdAt = 0,
                                     updatedAt = null,
-                                    assignedUserId = usuarioAsignado
+                                    assignedUserId = usuarioAsignado,
+                                    groupId = groupId
                                 )
 
-                                tasksViewModel.saveTask(newTask)                            }
+                                tasksViewModel.saveTask(newTask)
+                            }
                         },
                         enabled = titulo.isNotBlank() && !isLoading
                     ) {
@@ -273,7 +280,8 @@ fun AddTaskScreen(
                             dueDate = selectedDate,
                             createdAt = System.now().toEpochMilliseconds(),
                             updatedAt = null,
-                            assignedUserId = usuarioAsignado
+                            assignedUserId = usuarioAsignado,
+                            groupId = groupId
                         )
 
                         tasksViewModel.saveTask(newTask)

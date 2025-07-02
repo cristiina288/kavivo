@@ -8,7 +8,8 @@ data class TaskModel(
     val dueDate: Long? = null, //fecha limite
     val createdAt: Long = 0L,
     val updatedAt: Long? = null,
-    val assignedUserId: String? = null
+    val assignedUserId: String? = null,
+    val groupId: String = "",
 ) {
-    constructor() : this("", "", null, false, null, 0L, 0L, null)
+    constructor() : this("", "", null, false, null, 0L, 0L, null, "")
 }

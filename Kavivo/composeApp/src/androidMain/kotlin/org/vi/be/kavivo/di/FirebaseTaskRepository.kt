@@ -1,6 +1,7 @@
 package org.vi.be.kavivo.di
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.tasks.await
 import org.vi.be.kavivo.domain.tasks.TaskRepository
@@ -10,8 +11,12 @@ class FirebaseTaskRepository : TaskRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val tasksCollection = firestore.collection("tasks")
 
-    override suspend fun getTasks(): List<TaskModel> {
-        val snapshot = tasksCollection.get().await()
+    override suspend fun getTasks(groupId: String): List<TaskModel> {
+        val snapshot = tasksCollection
+            .whereEqualTo("groupId", groupId)
+            .get()
+            .await()
+
         return snapshot.documents.mapNotNull { it.toObject<TaskModel>()?.copy(id = it.id) }
     }
 

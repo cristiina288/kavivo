@@ -13,4 +13,8 @@ interface AuthRepository {
     fun isUserLoggedIn(): Boolean
 
     suspend fun getUserById(userId: String): UserModel?
+
+    suspend fun addGroupToUser(groupId: String, userId: String)
+
+    suspend fun saveGroupByDefault(groupId: String, user: UserModel)
 }

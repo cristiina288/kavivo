@@ -5,14 +5,20 @@ import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.tasks.await
 import org.vi.be.kavivo.domain.comments.CommentsRepository
 import org.vi.be.kavivo.domain.comments.models.CommentModel
+import com.google.firebase.firestore.Query
 
 class FirebaseCommentsRepository : CommentsRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val commentsCollection = firestore.collection("comments")
 
 
-    override suspend fun getComments(): List<CommentModel> {
-        val snapshot = commentsCollection.get().await()
+    override suspend fun getComments(groupId: String): List<CommentModel> {
+        val snapshot = commentsCollection
+            .whereEqualTo("groupId", groupId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .get()
+            .await()
+
         return snapshot.documents.mapNotNull { it.toObject<CommentModel>()?.copy(id = it.id) }
     }
 

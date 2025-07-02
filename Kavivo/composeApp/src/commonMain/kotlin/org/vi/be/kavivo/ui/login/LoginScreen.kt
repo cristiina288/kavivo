@@ -47,6 +47,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.koin.compose.viewmodel.koinViewModel
 import org.vi.be.kavivo.domain.users.models.UserModel
+import org.vi.be.kavivo.ui.Routes
 
 /*
 
@@ -69,13 +70,12 @@ fun LoginScreen(
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Iniciar Sesión", "Registrarse")
 
-    //val navigator = LocalNavigator.currentOrThrow
     val loginViewModel = koinViewModel<LoginViewModel>()
 
     val status by loginViewModel.userStatus.collectAsState()
 
     if (status) {
-        //navigator.push(TaskScreen)
+        navController.navigate(Routes.HOME)
     }
 
     Column(
@@ -143,6 +143,11 @@ private fun LoginComponentContent(
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    if (loginViewModel.onLoginError.collectAsState().value) {
+        isLoading = false
+        errorMessage = "Error con las credenciales"
+    }
 
     Column(
         modifier = Modifier

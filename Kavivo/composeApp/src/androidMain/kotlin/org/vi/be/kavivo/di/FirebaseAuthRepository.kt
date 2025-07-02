@@ -2,12 +2,9 @@ package org.vi.be.kavivo.di
 
 import android.util.Log
 import at.favre.lib.crypto.bcrypt.BCrypt
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.tasks.await
-import org.vi.be.kavivo.domain.tasks.TaskRepository
-import org.vi.be.kavivo.domain.tasks.models.TaskModel
 import org.vi.be.kavivo.domain.users.AuthRepository
 import org.vi.be.kavivo.domain.users.models.UserModel
 
@@ -68,10 +65,11 @@ class FirebaseAuthRepository : AuthRepository {
         return BCrypt.withDefaults().hashToString(12, password.toCharArray())
     }
 
+
     private fun verifyPasswordBcrypt(password: String, hash: String): Boolean {
         try {
-        val result = BCrypt.verifyer().verify(password.toCharArray(), hash)
-        return result.verified
+            val result = BCrypt.verifyer().verify(password.toCharArray(), hash)
+            return result.verified
 
         } catch (e: Exception){
             var a = e.message
@@ -79,6 +77,7 @@ class FirebaseAuthRepository : AuthRepository {
             return false
         }
     }
+
 
     override suspend fun logout() {
         TODO("Not yet implemented")
@@ -89,12 +88,53 @@ class FirebaseAuthRepository : AuthRepository {
         TODO("Not yet implemented")
     }
 
+
     override suspend fun getUserById(userId: String): UserModel? {
-        try {
+        return try {
             val snapshot = usersCollection.document(userId).get().await()
-            return snapshot.toObject<UserModel>()?.copy(id = snapshot.id)
+            val data = snapshot.data ?: return null
+
+            UserModel(
+                id = snapshot.id,
+                email = data["email"] as? String ?: "",
+                name = data["name"] as? String ?: "",
+                password = data["password"] as? String ?: "",
+                groupIds = (data["groupIds"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+            )
         } catch (e: Exception) {
-            return null
+            null
+        }
+    }
+
+
+    override suspend fun addGroupToUser(groupId: String, userId: String) {
+        try {
+            var user = getUserById(userId)
+
+            if (user?.groupByDefault.isNullOrEmpty()) {
+                usersCollection.document(userId)
+                    .update("groupByDefault", groupId)
+                    .await()
+            }
+
+            usersCollection.document(userId)
+                .update("groupIds", FieldValue.arrayUnion(groupId))
+                .await()
+        } catch (e: Exception) {
+            // Puedes loguear o lanzar el error
+            println("Error al añadir el grupo al usuario: ${e.message}")
+        }
+    }
+
+
+    override suspend fun saveGroupByDefault(groupId: String, user: UserModel) {
+        try {
+            usersCollection.document(user.id)
+                .update("groupByDefault", groupId)
+                .await()
+        } catch (e: Exception) {
+            // Puedes loguear o lanzar el error
+            println("Error al añadir el grupo por defecto al usuario: ${e.message}")
         }
     }
 }

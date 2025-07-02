@@ -5,7 +5,7 @@ import org.vi.be.kavivo.domain.tasks.models.TaskModel
 interface TaskRepository {
 
 
-    suspend fun getTasks(): List<TaskModel>
+    suspend fun getTasks(groupId: String): List<TaskModel>
 
     suspend fun addTask(task: TaskModel): Boolean
 

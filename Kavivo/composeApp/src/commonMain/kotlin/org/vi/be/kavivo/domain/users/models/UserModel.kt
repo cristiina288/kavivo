@@ -1,6 +1,7 @@
 package org.vi.be.kavivo.domain.users.models
 
 import kotlinx.serialization.Serializable
+import org.vi.be.kavivo.domain.groups.models.GroupModel
 
 
 @Serializable
@@ -9,7 +10,9 @@ data class UserModel(
     var email: String,
     var name: String,
     var password: String,
-    var groupsIds: List<String>? = emptyList<String>()
+    var groupIds: List<String>? = emptyList(),
+    var groups: List<GroupModel>? = emptyList(),
+    var groupByDefault: String = ""
 ) {
-    constructor() : this("", "", "", "", emptyList())
+    constructor() : this("", "", "", "", emptyList(), emptyList(), "")
 }

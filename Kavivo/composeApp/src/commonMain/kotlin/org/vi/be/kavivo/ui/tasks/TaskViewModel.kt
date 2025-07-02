@@ -34,8 +34,11 @@ class TaskViewModel(
     private val _user = MutableStateFlow<UserModel?>(null)
     val user: StateFlow<UserModel?> = _user
 
+    private val _groupSelectedId = MutableStateFlow<String>("")
+    val groupSelectedId: StateFlow<String> = _groupSelectedId
+
+
     init {
-        getAllTasks()
         getUserInformation()
     }
 
@@ -48,13 +51,15 @@ class TaskViewModel(
             }
 
             _user.value = result
+
+            getGroupSelectedId()
         }
     }
 
-    private fun getAllTasks() {
+    fun getAllTasks() {
         viewModelScope.launch {
             val result: List<TaskModel> = withContext(Dispatchers.IO) {
-                getTasks()
+                getTasks(groupSelectedId.value)
             }
 
             _tasks.value = result
@@ -83,13 +88,25 @@ class TaskViewModel(
 
     fun saveTask(newTask: TaskModel) {
         viewModelScope.launch {
-            viewModelScope.launch {
-                val result: Boolean = withContext(Dispatchers.IO) {
-                    addTask(newTask)
-                }
-
-                _addTaskStatus.value = result
+            val result: Boolean = withContext(Dispatchers.IO) {
+                addTask(newTask)
             }
+
+            _addTaskStatus.value = result
+        }
+    }
+
+
+    private fun getGroupSelectedId() {
+        viewModelScope.launch {
+
+            val result: String? = withContext(Dispatchers.IO) {
+                usersRepository.getGroupSelectedId()
+            }
+
+            _groupSelectedId.value = result ?: _user.value?.groupByDefault ?: ""
+
+            getAllTasks()
         }
     }
 }

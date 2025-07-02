@@ -29,9 +29,11 @@ class FeedViewModel(
     private val _user = MutableStateFlow<UserModel?>(null)
     val user: StateFlow<UserModel?> = _user
 
+    private val _groupSelectedId = MutableStateFlow<String>("")
+    val groupSelectedId: StateFlow<String> = _groupSelectedId
+
 
     init {
-        getAllComments()
         getUserInformation()
     }
 
@@ -44,14 +46,16 @@ class FeedViewModel(
             }
 
             _user.value = result
+
+            getGroupSelectedId()
         }
     }
 
 
-    private fun getAllComments() {
+    fun getAllComments() {
         viewModelScope.launch {
             val result: List<CommentModel> = withContext(Dispatchers.IO) {
-                getComments()
+                getComments(groupSelectedId.value)
             }
 
             _comments.value = result
@@ -80,13 +84,26 @@ class FeedViewModel(
 
     fun saveComment(newComment: CommentModel) {
         viewModelScope.launch {
-            viewModelScope.launch {
-                val result: Boolean = withContext(Dispatchers.IO) {
-                    addComment(newComment)
-                }
-
-                _addCommentStatus.value = result
+            val result: Boolean = withContext(Dispatchers.IO) {
+                addComment(newComment)
             }
+
+            _addCommentStatus.value = result
+        }
+    }
+
+
+    private fun getGroupSelectedId() {
+        viewModelScope.launch {
+
+            val result: String? = withContext(Dispatchers.IO) {
+                usersRepository.getGroupSelectedId()
+            }
+
+            _groupSelectedId.value = result ?: _user.value?.groupByDefault ?: ""
+
+            getAllComments()
+
         }
     }
 }

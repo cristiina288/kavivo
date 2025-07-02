@@ -63,8 +63,13 @@ fun AddCommentsScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     val status by feedViewModel.addCommentStatus.collectAsState()
+    val groupId by feedViewModel.groupSelectedId.collectAsState()
 
     if (status) {
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.set("shouldReloadComments", true)
+
         navController.popBackStack()
     }
 
@@ -97,7 +102,8 @@ fun AddCommentsScreen(
                                 val newComment = CommentModel(
                                     comment = comment,
                                     createdAt = System.now().toEpochMilliseconds(),
-                                    userName = feedViewModel.user.value?.name ?: "Desconocido"
+                                    userName = feedViewModel.user.value?.name ?: "Desconocido",
+                                    groupId = groupId
                                 )
 
                                 feedViewModel.saveComment(newComment)                            }
@@ -148,7 +154,8 @@ fun AddCommentsScreen(
                         val newComment = CommentModel(
                             comment = comment,
                             createdAt = System.now().toEpochMilliseconds(),
-                            userName = feedViewModel.user.value?.name ?: "Desconocido"
+                            userName = feedViewModel.user.value?.name ?: "Desconocido",
+                            groupId = groupId
                         )
 
                         feedViewModel.saveComment(newComment)
