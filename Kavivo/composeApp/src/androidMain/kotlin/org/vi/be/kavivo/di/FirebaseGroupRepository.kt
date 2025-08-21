@@ -64,7 +64,11 @@ class FirebaseGroupRepository : GroupsRepository {
                 it.toObject<GroupModel>()?.copy(id = it.id)
             }
 
-            Result.success(group)
+            if (group != null) {
+                Result.success(group)
+            } else {
+                Result.failure(Exception("No hemos encontrado el grupo"))
+            }
         } catch (e: Exception) {
             // Log del error si es necesario
             println("Error al obtener grupo por Id: ${e.message}")

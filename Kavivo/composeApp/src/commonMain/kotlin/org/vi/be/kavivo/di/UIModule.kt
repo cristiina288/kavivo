@@ -5,6 +5,7 @@ import org.koin.dsl.module
 import org.vi.be.kavivo.ui.AppViewModel
 import org.vi.be.kavivo.ui.feed.FeedViewModel
 import org.vi.be.kavivo.ui.groups.GroupsViewModel
+import org.vi.be.kavivo.ui.home.HomeViewModel
 import org.vi.be.kavivo.ui.login.LoginViewModel
 import org.vi.be.kavivo.ui.tasks.TaskViewModel
 
@@ -12,6 +13,7 @@ import org.vi.be.kavivo.ui.tasks.TaskViewModel
 val uiModule = module {
     viewModelOf(::TaskViewModel)
     viewModelOf(::LoginViewModel)
+    viewModelOf(::HomeViewModel)
 
     viewModelOf(::AppViewModel)
     viewModelOf(::FeedViewModel)

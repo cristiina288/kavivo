@@ -31,7 +31,7 @@ class AppViewModel(
     }
 
 
-    private fun getUserInformation() {
+    fun getUserInformation() {
         viewModelScope.launch {
 
             val result: UserModel? = withContext(Dispatchers.IO) {
@@ -41,7 +41,6 @@ class AppViewModel(
             _user.value = result
 
             getGroupSelectedId()
-
         }
     }
 

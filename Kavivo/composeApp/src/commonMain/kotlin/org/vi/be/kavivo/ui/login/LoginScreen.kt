@@ -42,23 +42,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import org.koin.compose.viewmodel.koinViewModel
 import org.vi.be.kavivo.domain.users.models.UserModel
 import org.vi.be.kavivo.ui.Routes
-
-/*
-
-object LoginScreen : Screen {
-    @Composable
-    override fun Content() {
-        LoginContent()
-    }
-}
-*/
-
 
 
 @Composable
@@ -75,7 +61,8 @@ fun LoginScreen(
     val status by loginViewModel.userStatus.collectAsState()
 
     if (status) {
-        navController.navigate(Routes.HOME)
+        val route = Routes.HOME
+        navController.navigate("$route?reload=true")
     }
 
     Column(
@@ -194,7 +181,7 @@ private fun LoginComponentContent(
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Default.Lock else Icons.Default.Lock,
+                        imageVector = Icons.Default.Lock,
                         contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                     )
                 }
@@ -229,16 +216,6 @@ private fun LoginComponentContent(
                         userEmail = email,
                         userPassword = password,
                     )
-                    // Aquí iría la lógica de login con Firebase
-                    // Por ahora simulamos el login
-                    /*loginViewModel.performLogin(email, password) { success, error ->
-                        isLoading = false
-                        if (success) {
-                            onLoginSuccess()
-                        } else {
-                            errorMessage = error
-                        }
-                    }*/
                 } else {
                     errorMessage = "Por favor completa todos los campos"
                 }
@@ -387,7 +364,7 @@ private fun RegisterContent(
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                     Icon(
-                        imageVector = if (confirmPasswordVisible) Icons.Default.Close else Icons.Default.Lock,
+                        imageVector = if (confirmPasswordVisible) Icons.Default.Lock else Icons.Default.Lock,
                         contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                     )
                 }
@@ -453,17 +430,6 @@ private fun RegisterContent(
                                 password = password,
                             )
                         )
-
-
-                        // Aquí iría la lógica de registro con Firebase
-                        /*performRegister(nombre, email, password) { success, error ->
-                            isLoading = false
-                            if (success) {
-                                onRegisterSuccess()
-                            } else {
-                                errorMessage = error
-                            }
-                        }*/
                     }
                 }
             },

@@ -64,9 +64,9 @@ fun FeedScreen (
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentAlignment = androidx.compose.ui.Alignment.Center
+                contentAlignment = Alignment.Center
             ) {
-                Text("No hay tareas")
+                Text("No hay publicaciones")
             }
         } else {
             Column(

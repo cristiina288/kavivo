@@ -76,6 +76,10 @@ fun AddGroupScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("shouldReloadGroups", true)
+
                         navController.popBackStack()
                     }) {
                         Icon(
@@ -107,15 +111,10 @@ private fun Content(
     //val navigator = LocalNavigator.currentOrThrow
     val groupsViewModel = koinViewModel<GroupsViewModel>()
 
-    val status by groupsViewModel.userStatus.collectAsState()
     var codeIsVisible by remember { mutableStateOf(false) }
     var joinedSuccessfullyVisible by remember { mutableStateOf(false) }
     val group by groupsViewModel.group.collectAsState()
     var groupName by remember { mutableStateOf(group?.title) }
-
-    if (status) {
-        navController.navigate(Routes.HOME)
-    }
 
     if (group != null
         && group?.id?.isNotEmpty() == true
@@ -239,7 +238,11 @@ private fun Content(
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
+                        onClick = {
+                            selectedTabIndex = index
+
+                            groupsViewModel.addErrorMessage(null)
+                        },
                         text = {
                             Text(
                                 text = title,
@@ -271,10 +274,14 @@ private fun JoinToGroupComponentContent(
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    errorMessage = groupsViewModel.errorMessage.collectAsState().value
+
+    if (!groupsViewModel.groupStatus.collectAsState().value) {
+        isLoading = false
+    }
 
     if (!groupsViewModel.groupJoinedStatus.collectAsState().value) {
         isLoading = false
-        errorMessage = "Ha habido un error al unirte al grupo. Vuelve a intentarlo."
     }
 
     Column(
@@ -295,7 +302,7 @@ private fun JoinToGroupComponentContent(
             value = code,
             onValueChange = {
                 code = it
-                errorMessage = null
+                groupsViewModel.addErrorMessage(null)
             },
             label = { Text("Código") },
             placeholder = { Text("El código del grupo") },
@@ -309,6 +316,15 @@ private fun JoinToGroupComponentContent(
             singleLine = true,
             isError = errorMessage != null
         )
+
+        errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         /*
                 // Password Field
                 OutlinedTextField(
@@ -376,7 +392,7 @@ private fun JoinToGroupComponentContent(
                         }
                     }*/
                 } else {
-                    errorMessage = "Por favor completa todos los campos"
+                    groupsViewModel.addErrorMessage("Por favor completa todos los campos")
                 }
             },
             modifier = Modifier
@@ -424,10 +440,10 @@ private fun AddNewGroupComponentContent(
     //var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    errorMessage = groupsViewModel.errorMessage.collectAsState().value
 
     if (!groupsViewModel.groupStatus.collectAsState().value) {
         isLoading = false
-        errorMessage = "Ha habido un error al crear el grupo. Vuelve a intentarlo."
     }
 
     Column(
@@ -449,7 +465,7 @@ private fun AddNewGroupComponentContent(
             value = groupName,
             onValueChange = {
                 groupName = it
-                errorMessage = null
+                groupsViewModel.addErrorMessage(null)
             },
             label = { Text("Nombre") },
             placeholder = { Text("Tu nombre") },
@@ -463,6 +479,15 @@ private fun AddNewGroupComponentContent(
             singleLine = true,
             isError = errorMessage != null
         )
+
+        errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         // Password Field
         /*OutlinedTextField(
@@ -501,7 +526,7 @@ private fun AddNewGroupComponentContent(
             onClick = {
                 when {
                     groupName.isBlank() -> {//|| password.isBlank() -> {
-                        errorMessage = "Por favor completa todos los campos"
+                        groupsViewModel.addErrorMessage("Por favor completa todos los campos")
                     }
                     /*password.length < 6 -> {
                         errorMessage = "La contraseña debe tener al menos 6 caracteres"

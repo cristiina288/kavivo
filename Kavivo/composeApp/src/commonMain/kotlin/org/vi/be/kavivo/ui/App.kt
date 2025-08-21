@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -36,11 +39,13 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemColors
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,14 +64,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import org.vi.be.kavivo.domain.groups.models.GroupModel
 import org.vi.be.kavivo.domain.users.models.UserModel
+import org.vi.be.kavivo.ui.Routes.getRouteEditGroup
 import org.vi.be.kavivo.ui.expenses.ExpensesScreen
 import org.vi.be.kavivo.ui.feed.AddCommentsScreen
 import org.vi.be.kavivo.ui.feed.FeedScreen
 import org.vi.be.kavivo.ui.groups.AddGroupScreen
+import org.vi.be.kavivo.ui.groups.EditGroupScreen
 import org.vi.be.kavivo.ui.home.HomeScreen
 import org.vi.be.kavivo.ui.login.LoginScreen
 import org.vi.be.kavivo.ui.tasks.AddTaskScreen
@@ -83,6 +93,9 @@ object Routes {
     const val ADD_TASKS = "add_tasks"
     const val ADD_COMMENTS = "add_comments"
     const val ADD_GROUPS = "add_groups"
+    const val EDIT_GROUPS = "edit_groups/{id}/{title}/{ownerId}"
+
+    fun getRouteEditGroup(id: String, title: String, ownerId: String) = "edit_groups/$id/$title/$ownerId"
 
     /*// Rutas de detalle con parámetros
     const val HOME_DETAIL = "home_detail/{title}"
@@ -160,6 +173,16 @@ fun MainAppWithBottomNav(
     // Estado para controlar el drawer
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val shouldReload = savedStateHandle?.get<Boolean>("shouldReloadGroups") == true
+
+    LaunchedEffect(shouldReload) {
+        if (shouldReload) {
+            viewModel.getUserInformation()
+            savedStateHandle?.remove<Boolean>("shouldReloadGroups")
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -240,7 +263,8 @@ fun MainAppWithBottomNav(
             MainNavHost(
                 navController = navController,
                 modifier = Modifier.padding(innerPadding),
-                startDestinationRoute = startDestinationRoute
+                startDestinationRoute = startDestinationRoute,
+                appViewModel = viewModel
             )
         }
     }
@@ -260,7 +284,8 @@ private fun buildTitle(currentRoute: String?) : String {
 fun MainNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    startDestinationRoute: String
+    startDestinationRoute: String,
+    appViewModel: AppViewModel
 ) {
     NavHost(
         navController = navController,
@@ -299,6 +324,33 @@ fun MainNavHost(
         composable(Routes.LOGIN) {
             LoginScreen(navController)
         }
+
+        composable(Routes.EDIT_GROUPS) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            val title = backStackEntry.arguments?.getString("title") ?: ""
+            val ownerId = backStackEntry.arguments?.getString("ownerId") ?: ""
+
+            val group = GroupModel(
+                id = id,
+                title = title,
+                ownerId = ownerId
+            )
+
+            EditGroupScreen(navController, group)
+        }
+
+        //var homeRoute = Routes.HOME
+/*
+
+        composable("home?reload={reload}", arguments = listOf(
+            navArgument("reload") { defaultValue = "false" }
+        )) {
+            appViewModel.getUserInformation()
+
+            HomeScreen(navController)
+        }
+*/
+
 
         /*
                 // Pantallas de detalle
@@ -339,6 +391,7 @@ fun DrawerContent(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             // Header del drawer
@@ -450,6 +503,9 @@ fun DrawerContent(
                         selected = selectedGroup,//currentRoute == item.route,
                         onClick = {
                             viewModel.saveGroupSelectedId(group.id)
+
+                            val route = Routes.HOME
+                            navController.navigate("$route?reload=true")
                             /*if (item.route != null) {
                                 navController.navigate(item.route) {
                                     launchSingleTop = true
@@ -466,7 +522,21 @@ fun DrawerContent(
                                 width = 1.dp,
                                 color = Color.LightGray,
                                 shape = CircleShape
-                            )
+                            ),
+                        badge = {
+                            if (selectedGroup) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .clickable {
+                                            navController.navigate(getRouteEditGroup(group.id, group.title, group.ownerId))
+
+                                            //navController.navigate(Routes.EDIT_GROUPS)
+                                        }
+                                )
+                            }
+                        }
 
                     )
                 }

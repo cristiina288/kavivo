@@ -31,17 +31,21 @@ class GroupsViewModel(
     private val _user = MutableStateFlow<UserModel?>(null)
     val user: StateFlow<UserModel?> = _user
 
-    private val _userStatus = MutableStateFlow<Boolean>(false)
-    val userStatus: StateFlow<Boolean> = _userStatus
-
     private val _groupStatus = MutableStateFlow<Boolean>(false)
     val groupStatus: StateFlow<Boolean> = _groupStatus
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
     private val _groupJoinedStatus = MutableStateFlow<Boolean>(false)
     val groupJoinedStatus: StateFlow<Boolean> = _groupJoinedStatus
 
     private val _group = MutableStateFlow<GroupModel?>(null)
     val group: StateFlow<GroupModel?> = _group
+
+    private val _groupSelectedId = MutableStateFlow<String>("")
+    val groupSelectedId: StateFlow<String> = _groupSelectedId
+
 
 
     init {
@@ -61,21 +65,20 @@ class GroupsViewModel(
     }
 
 
-    fun addGroup(name: String) {
+    fun editName(name: String) {
         viewModelScope.launch {
-            val newGroup = GroupModel (
-                title = name,
-                ownerId = user.value?.id ?: ""
+            _group.value?.copy(
+                title = name
             )
-
+//todo pending
             val result: Result<GroupModel?> = withContext(Dispatchers.IO) {
-                addGroup(newGroup)
+                editGroup(_group)
             }
 
             _groupStatus.value = result.isSuccess
 
             result.onSuccess { group ->
-                _group.value = group
+                _errorMessage.value = null
 
                 if (group != null && user.value != null) {
                     if (user.value?.groupByDefault.isNullOrEmpty()) {
@@ -95,48 +98,20 @@ class GroupsViewModel(
                 }
             }.onFailure { exception ->
                 _group.value = null
-
+                _errorMessage.value = "Ha habido un error al crear el grupo. Vuelve a intentarlo."
                 // Aquí gestionas el error
             }
 
         }
     }
 
+    fun addErrorMessage(errorMessage: String?) {
+        _errorMessage.value = errorMessage
+    }
 
-    fun joinToGroup(groupId: String) {
-        viewModelScope.launch {
 
-            withContext(Dispatchers.IO) {
-                addGroupToUser(groupId, user.value?.id ?: "")
-            }
-
-            var groupResult: Result<GroupModel?> = withContext(Dispatchers.IO) {
-                getGroupById(groupId)
-            }
-
-            _groupJoinedStatus.value = groupResult.isSuccess
-
-            groupResult.onSuccess { group ->
-                _group.value = group
-
-                if (group != null && user.value != null) {
-                    if (user.value?.groupByDefault.isNullOrEmpty()) {
-                        withContext(Dispatchers.IO) {
-                            saveGroupByDefault(group.id, user.value!!)
-                        }
-
-                        usersRepository.saveGroupSelectedId(group.id)
-                        usersRepository.saveDefaultGroupId(group.id)
-                    }
-
-                    usersRepository.addGroupIdToUser(group)
-                }
-            }.onFailure { exception ->
-                _group.value = null
-
-                // Aquí gestionas el error
-            }
-        }
+    fun getGroupForEdit (group: GroupModel) {
+        _group.value = group
     }
 
 }

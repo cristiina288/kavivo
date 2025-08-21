@@ -50,6 +50,7 @@ import org.vi.be.kavivo.domain.tasks.models.DateInfo
 import org.vi.be.kavivo.domain.tasks.models.TaskModel
 import org.vi.be.kavivo.ui.Routes
 import org.vi.be.kavivo.ui.helpers.formatDateTitle
+import org.vi.be.kavivo.ui.helpers.groupTasksByDate
 
 
 @OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
@@ -65,7 +66,11 @@ fun TasksScreen (
 
     // Agrupar y ordenar tareas por fecha
     val groupedTasks = remember(tasks) {
-        groupTasksByDate(tasks ?: emptyList())
+        if (!tasks.isNullOrEmpty()) {
+            groupTasksByDate(tasks ?: emptyList(), false)
+        } else {
+            emptyList()
+        }
     }
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -142,10 +147,6 @@ fun TasksScreen (
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-                /*itemsIndexed(tasks ?: emptyList()) { index, task ->
-                    TaskItem(task = task, onClick = { onTaskClick(task) }, tasksViewModel)
-                    Spacer(modifier = Modifier.height(4.dp))
-                }*/
             }
         }
     }
@@ -153,7 +154,7 @@ fun TasksScreen (
 
 
 @Composable
-fun TaskItem(
+private fun TaskItem(
     task: TaskModel,
     onClick: () -> Unit,
     viewModel: TaskViewModel
@@ -223,7 +224,7 @@ fun TaskItem(
 
 
 @Composable
-fun DateHeader(
+private fun DateHeader(
     title: String,
     taskCount: Int,
     isOverdue: Boolean
@@ -275,86 +276,4 @@ fun DateHeader(
             }
         }
     }
-}
-
-
-// Función para agrupar tareas por fecha
-private fun groupTasksByDate(tasks: List<TaskModel>): List<Pair<DateInfo, List<TaskModel>>> {
-    val today = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault())
-        .date
-
-    // Filtrar solo tareas con fecha válida y agrupar por fecha
-    val tasksWithDate = tasks
-        .filter { it.dueDate != null && it.dueDate > 0 }
-        .groupBy { task ->
-            val taskDate = Instant.fromEpochMilliseconds(task.dueDate!!)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .date
-            taskDate
-        }
-
-    // Tareas sin fecha (las ponemos al final)
-    val tasksWithoutDate = tasks.filter { it.dueDate == null || it.dueDate <= 0 }
-
-    // Crear lista ordenada de grupos
-    val sortedGroups = mutableListOf<Pair<DateInfo, List<TaskModel>>>()
-
-    // Ordenar fechas
-    val sortedDates = tasksWithDate.keys.sorted()
-
-    sortedDates.forEach { date ->
-        val dateMillis = date.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
-        val allTasksForDate = tasksWithDate[date] ?: emptyList()
-
-        // Filtrar tareas: si es anterior a hoy, solo mostrar las no completadas
-        val tasksForDate = if (date < today) {
-            allTasksForDate.filter { !it.isDone }
-        } else {
-            allTasksForDate
-        }
-
-        // Solo agregar el grupo si tiene tareas después del filtro
-        if (tasksForDate.isNotEmpty()) {
-            val dateInfo = when {
-                date < today -> DateInfo(
-                    dateMillis = dateMillis,
-                    title = formatDateTitle(date, isOverdue = true),
-                    isOverdue = true
-                )
-
-                date == today -> DateInfo(
-                    dateMillis = dateMillis,
-                    title = "Hoy",
-                    isOverdue = false
-                )
-
-                date == today.plus(DatePeriod(days = 1)) -> DateInfo(
-                    dateMillis = dateMillis,
-                    title = "Mañana",
-                    isOverdue = false
-                )
-
-                else -> DateInfo(
-                    dateMillis = dateMillis,
-                    title = formatDateTitle(date),
-                    isOverdue = false
-                )
-            }
-
-            sortedGroups.add(dateInfo to tasksForDate)
-        }
-    }
-
-    // Agregar tareas sin fecha al final
-    if (tasksWithoutDate.isNotEmpty()) {
-        val noDateInfo = DateInfo(
-            dateMillis = Long.MAX_VALUE,
-            title = "Sin fecha",
-            isOverdue = false
-        )
-        sortedGroups.add(noDateInfo to tasksWithoutDate)
-    }
-
-    return sortedGroups
 }
